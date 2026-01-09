@@ -18,14 +18,24 @@
 Configuration::Configuration(
     const std::vector<std::filesystem::path>& configurationDirectories,
     const std::filesystem::path& schemaDirectory) :
-    schemaDirectory(schemaDirectory),
-    configurationDirectories(configurationDirectories)
+    configurationDirectories(configurationDirectories),
+    schemaDirectory(schemaDirectory)
 {
+    // Defer filterProbeInterfaces to loadConfigurations to avoid unnecessary
+    // work if loadConfigurations fails.
     loadConfigurations();
-    filterProbeInterfaces();
 }
 
-void Configuration::loadConfigurations()
+/**
+ * Loads JSON configuration files from the specified directories and validates them against a schema.
+ *
+ * @param[in] configurationDirectories A vector of filesystem paths to search for JSON configuration files.
+ * @param[in] schemaDirectory A filesystem path to the schema file.
+ *
+ * @return None
+ */
+void Configuration::loadConfigurations(const std::vector<std::filesystem::path>& configurationDirectories,
+                                       const std::filesystem::path& schemaDirectory)
 {
     const auto start = std::chrono::steady_clock::now();
 
@@ -63,7 +73,7 @@ void Configuration::loadConfigurations()
         }
     }
 
-    for (auto& jsonPath : jsonPaths)
+    for (const auto& jsonPath : jsonPaths)
     {
         std::ifstream jsonStream(jsonPath.c_str());
         if (!jsonStream.good())
@@ -86,7 +96,7 @@ void Configuration::loadConfigurations()
 
         if (data.type() == nlohmann::json::value_t::array)
         {
-            for (auto& d : data)
+            for (const auto& d : data)
             {
                 configurations.emplace_back(d);
             }
