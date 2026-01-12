@@ -15,6 +15,17 @@
 #include <string>
 #include <vector>
 
+/**
+ * @brief Initializes configuration paths and triggers loading of configurations.
+ *
+ * Constructs a Configuration instance with the provided list of configuration
+ * directories and the schema directory, then begins loading configurations.
+ *
+ * @param configurationDirectories Paths to directories that will be searched
+ *        for JSON configuration files.
+ * @param schemaDirectory Path to the directory containing the global JSON
+ *        schema used for runtime validation.
+ */
 Configuration::Configuration(
     const std::vector<std::filesystem::path>& configurationDirectories,
     const std::filesystem::path& schemaDirectory) :
@@ -27,12 +38,20 @@ Configuration::Configuration(
 }
 
 /**
- * Loads JSON configuration files from the specified directories and validates them against a schema.
+ * @brief Load and validate JSON configuration files from the given directories.
  *
- * @param[in] configurationDirectories A vector of filesystem paths to search for JSON configuration files.
- * @param[in] schemaDirectory A filesystem path to the schema file.
+ * Reads all JSON files discovered under the provided configurationDirectories, parses each file,
+ * validates each parsed JSON against the schema at schemaDirectory/global.json when runtime
+ * validation is enabled, and appends configuration objects to the member `configurations`.
  *
- * @return None
+ * If a JSON file contains a top-level array, each element of the array is appended as a separate
+ * configuration object; otherwise the top-level object is appended.
+ *
+ * @param configurationDirectories Vector of filesystem paths to search for JSON configuration files.
+ * @param schemaDirectory Filesystem path containing the schema file named `global.json`.
+ *
+ * @note When runtime JSON validation is enabled, failure to open or parse the schema file will
+ * call std::exit(EXIT_FAILURE).
  */
 void Configuration::loadConfigurations(const std::vector<std::filesystem::path>& configurationDirectories,
                                        const std::filesystem::path& schemaDirectory)
